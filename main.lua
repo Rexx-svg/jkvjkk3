@@ -1,12 +1,241 @@
-local a=function(t)local s=""for i=1,#t do s=s..string.char(t[i])end return s end
-loadstring(a({
-108,111,99,97,108,32,80,108,97,121,101,114,115,32,61,32,103,97,109,101,58,71,101,116,83,101,114,118,105,99,101,40,34,80,108,97,121,101,114,115,34,41,
-108,111,99,97,108,32,85,115,101,114,73,110,112,117,116,83,101,114,118,105,99,101,32,61,32,103,97,109,101,58,71,101,116,83,101,114,118,105,99,101,40,34,85,115,101,114,73,110,112,117,116,83,101,114,118,105,99,101,34,41,
-108,111,99,97,108,32,112,108,97,121,101,114,32,61,32,80,108,97,121,101,114,115,46,76,111,99,97,108,80,108,97,121,101,114,
-108,111,99,97,108,32,99,104,97,114,32,61,32,112,108,97,121,101,114,46,67,104,97,114,97,99,116,101,114,32,111,114,32,112,108,97,121,101,114,46,67,104,97,114,97,99,116,101,114,65,100,100,101,100,58,87,97,105,116,40,41,
-108,111,99,97,108,32,104,117,109,32,61,32,99,104,97,114,58,87,97,105,116,70,111,114,67,104,105,108,100,40,34,72,117,109,97,110,111,105,100,34,41,
-108,111,99,97,108,32,111,114,105,103,105,110,97,108,83,112,101,101,100,32,61,32,104,117,109,46,87,97,108,107,83,112,101,101,100,
-108,111,99,97,108,32,98,111,111,115,116,101,100,32,61,32,102,97,108,115,101,
-108,111,99,97,108,32,83,105,108,108,121,66,111,111,115,116,101,114,71,85,73,32,61,32,73,110,115,116,97,110,99,101,46,110,101,119,40,34,83,99,114,101,101,110,71,117,105,34,41,
--- (sigue TODO el script reconstruido internamente)
-}))()
+--// HAROLD TOP 😹
+--// Full GUI + Sources (DESYNC replaced)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-------------------------------------------------
+-- GUI BASE
+-------------------------------------------------
+local gui = Instance.new("ScreenGui", PlayerGui)
+gui.Name = "HAROLD_TOP"
+gui.ResetOnSpawn = false
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 210, 0, 260)
+main.Position = UDim2.new(0.5, -105, 0.5, -130)
+main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,14)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,35)
+title.BackgroundTransparency = 1
+title.Text = "😹 HAROLD TOP"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 14
+title.TextColor3 = Color3.fromRGB(255,80,80)
+
+-------------------------------------------------
+-- CLICK SOUND
+-------------------------------------------------
+local click = Instance.new("Sound", gui)
+click.SoundId = "rbxassetid://12221967"
+click.Volume = 1
+local function sound() click:Play() end
+
+-------------------------------------------------
+-- BUTTON MAKER
+-------------------------------------------------
+local function button(txt, y, w)
+	local b = Instance.new("TextButton", main)
+	b.Size = w or UDim2.new(1,-20,0,32)
+	b.Position = UDim2.new(0,10,0,y)
+	b.BackgroundColor3 = Color3.fromRGB(40,0,0)
+	b.Text = txt.." [OFF]"
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.GothamBold
+	b.TextSize = 12
+	b.BorderSizePixel = 0
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
+	return b
+end
+
+-------------------------------------------------
+-- BUTTONS (ORDEN CORRECTO)
+-------------------------------------------------
+local DesyncBtn = button("DESYNC", 45)
+local SpeedBtn  = button("SPEED", 85)
+local KickBtn   = button("KICK", 125)
+
+local ESPBtn = button("ESP", 165, UDim2.new(0.48,-5,0,32))
+ESPBtn.Position = UDim2.new(0,10,0,165)
+
+local RayBtn = button("RAY", 165, UDim2.new(0.48,-5,0,32))
+RayBtn.Position = UDim2.new(0.52,0,0,165)
+
+local AntiBtn = button("ANTIRADGOLL", 205)
+
+-------------------------------------------------
+-- STATES
+-------------------------------------------------
+local desyncOn, speedOn, kickOn, espOn, rayOn, antiOn = false,false,false,false,false,false
+local normalSpeed = 16
+
+-------------------------------------------------
+-- DESYNC (RESET DESYNC / BODY FREEZE)
+-------------------------------------------------
+local function desyncReset()
+	local player = LocalPlayer
+	local char = player.Character
+	if not char then return end
+
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hum or not hrp then return end
+
+	local savedCF = hrp.CFrame
+
+	for _,v in ipairs(char:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.Anchored = true
+		end
+	end
+
+	hum:ChangeState(Enum.HumanoidStateType.Physics)
+	hum.Health = 0
+
+	player.CharacterAdded:Wait()
+	task.wait(0.2)
+
+	local newChar = player.Character
+	if newChar then
+		local newHRP = newChar:WaitForChild("HumanoidRootPart")
+		newHRP.CFrame = savedCF
+	end
+end
+
+DesyncBtn.MouseButton1Click:Connect(function()
+	sound()
+	if desyncOn then return end
+	desyncOn = true
+	DesyncBtn.Text = "DESYNC [ON]"
+	DesyncBtn.BackgroundColor3 = Color3.fromRGB(120,0,0)
+	desyncReset()
+end)
+
+-------------------------------------------------
+-- SPEED
+-------------------------------------------------
+SpeedBtn.MouseButton1Click:Connect(function()
+	sound()
+	local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+	if not hum then return end
+	speedOn = not speedOn
+	hum.WalkSpeed = speedOn and 38.5 or normalSpeed
+	SpeedBtn.Text = "SPEED ["..(speedOn and "ON" or "OFF").."]"
+	SpeedBtn.BackgroundColor3 = speedOn and Color3.fromRGB(0,120,255) or Color3.fromRGB(40,0,0)
+end)
+
+-------------------------------------------------
+-- KICK
+-------------------------------------------------
+local keyword = "you stole"
+KickBtn.MouseButton1Click:Connect(function()
+	sound()
+	kickOn = not kickOn
+	KickBtn.Text = "KICK ["..(kickOn and "ON" or "OFF").."]"
+	KickBtn.BackgroundColor3 = kickOn and Color3.fromRGB(120,0,0) or Color3.fromRGB(40,0,0)
+end)
+
+-------------------------------------------------
+-- ESP
+-------------------------------------------------
+local espObjects = {}
+
+local function addESP(plr)
+	if plr == LocalPlayer then return end
+	local c = plr.Character
+	if not c then return end
+	local hrp = c:FindFirstChild("HumanoidRootPart")
+	local head = c:FindFirstChild("Head")
+	if not (hrp and head) then return end
+
+	local box = Instance.new("BoxHandleAdornment", hrp)
+	box.Size = Vector3.new(4,6,2)
+	box.AlwaysOnTop = true
+	box.Transparency = 0.6
+	box.Color3 = Color3.fromRGB(255,0,255)
+
+	local bb = Instance.new("BillboardGui", head)
+	bb.Size = UDim2.new(0,200,0,40)
+	bb.AlwaysOnTop = true
+	local tl = Instance.new("TextLabel", bb)
+	tl.Size = UDim2.new(1,0,1,0)
+	tl.BackgroundTransparency = 1
+	tl.Text = plr.Name
+	tl.TextColor3 = Color3.fromRGB(255,0,255)
+	tl.TextScaled = true
+
+	espObjects[plr] = {box,bb}
+end
+
+ESPBtn.MouseButton1Click:Connect(function()
+	sound()
+	espOn = not espOn
+	ESPBtn.Text = "ESP ["..(espOn and "ON" or "OFF").."]"
+	ESPBtn.BackgroundColor3 = espOn and Color3.fromRGB(0,200,0) or Color3.fromRGB(40,0,0)
+
+	if espOn then
+		for _,p in pairs(Players:GetPlayers()) do addESP(p) end
+	else
+		for _,t in pairs(espObjects) do
+			for _,o in pairs(t) do o:Destroy() end
+		end
+		espObjects = {}
+	end
+end)
+
+-------------------------------------------------
+-- RAY
+-------------------------------------------------
+local rayParts = {}
+local function isBase(p)
+	local n = p.Name:lower()
+	return n:find("base") or n:find("claim")
+end
+
+RayBtn.MouseButton1Click:Connect(function()
+	sound()
+	rayOn = not rayOn
+	RayBtn.Text = "RAY ["..(rayOn and "ON" or "OFF").."]"
+	RayBtn.BackgroundColor3 = rayOn and Color3.fromRGB(255,140,0) or Color3.fromRGB(40,0,0)
+
+	for _,v in pairs(Workspace:GetDescendants()) do
+		if v:IsA("BasePart") and isBase(v) then
+			if rayOn then
+				rayParts[v] = v.LocalTransparencyModifier
+				v.LocalTransparencyModifier = 0.8
+			else
+				v.LocalTransparencyModifier = rayParts[v] or 0
+			end
+		end
+	end
+end)
+
+-------------------------------------------------
+-- ANTI RAGDOLL
+-------------------------------------------------
+AntiBtn.MouseButton1Click:Connect(function()
+	sound()
+	antiOn = not antiOn
+	AntiBtn.Text = "ANTIRADGOLL ["..(antiOn and "ON" or "OFF").."]"
+	AntiBtn.BackgroundColor3 = antiOn and Color3.fromRGB(120,120,120) or Color3.fromRGB(40,0,0)
+end)
+
+RunService.Heartbeat:Connect(function()
+	if antiOn then
+		local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
+		if hum and hum:GetState() == Enum.HumanoidStateType.Ragdoll then
+			hum:ChangeState(Enum.HumanoidStateType.Running)
+		end
+	end
+end)
