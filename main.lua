@@ -81,36 +81,43 @@ local desyncOn, speedOn, kickOn, espOn, rayOn, antiOn = false,false,false,false,
 local normalSpeed = 16
 
 -------------------------------------------------
--- DESYNC (RESET DESYNC / BODY FREEZE)
+-- DESYNC REAL / GHOST BODY
 -------------------------------------------------
-local function desyncReset()
-	local player = LocalPlayer
-	local char = player.Character
-	if not char then return end
+local function realDesync()
+    local player = LocalPlayer
+    local char = player.Character
+    if not char then return end
 
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if not hum or not hrp then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return end
 
-	local savedCF = hrp.CFrame
+    -- Guardar posición
+    local savedCF = hrp.CFrame
 
-	for _,v in ipairs(char:GetDescendants()) do
-		if v:IsA("BasePart") then
-			v.Anchored = true
-		end
-	end
+    -- CLONAR CUERPO
+    local ghost = char:Clone()
+    ghost.Name = "GhostBody"
+    ghost.Parent = workspace
 
-	hum:ChangeState(Enum.HumanoidStateType.Physics)
-	hum.Health = 0
+    -- Preparar ghost
+    for _,v in pairs(ghost:GetDescendants()) do
+        if v:IsA("Script") or v:IsA("LocalScript") then
+            v:Destroy()
+        elseif v:IsA("BasePart") then
+            v.Anchored = true
+            v.CanCollide = false
+        end
+    end
 
-	player.CharacterAdded:Wait()
-	task.wait(0.2)
+    -- Colocar ghost en posición
+    local ghostHRP = ghost:FindFirstChild("HumanoidRootPart")
+    if ghostHRP then
+        ghostHRP.CFrame = savedCF
+    end
 
-	local newChar = player.Character
-	if newChar then
-		local newHRP = newChar:WaitForChild("HumanoidRootPart")
-		newHRP.CFrame = savedCF
-	end
+    -- Respawn real
+    hum.Health = 0
 end
 
 DesyncBtn.MouseButton1Click:Connect(function()
@@ -119,7 +126,7 @@ DesyncBtn.MouseButton1Click:Connect(function()
 	desyncOn = true
 	DesyncBtn.Text = "DESYNC [ON]"
 	DesyncBtn.BackgroundColor3 = Color3.fromRGB(120,0,0)
-	desyncReset()
+	realDesync()
 end)
 
 -------------------------------------------------
