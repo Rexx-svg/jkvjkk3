@@ -1,5 +1,5 @@
 --// HAROLD TOP 😹
---// Full GUI + Sources (DESYNC replaced)
+--// Full GUI + Sources (DESYNC replaced with USER SOURCE)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -60,7 +60,7 @@ local function button(txt, y, w)
 end
 
 -------------------------------------------------
--- BUTTONS (ORDEN CORRECTO)
+-- BUTTONS
 -------------------------------------------------
 local DesyncBtn = button("DESYNC", 45)
 local SpeedBtn  = button("SPEED", 85)
@@ -81,43 +81,50 @@ local desyncOn, speedOn, kickOn, espOn, rayOn, antiOn = false,false,false,false,
 local normalSpeed = 16
 
 -------------------------------------------------
--- DESYNC REAL / GHOST BODY
+-- DESYNC RESET / GHOST BODY (USER SOURCE)
 -------------------------------------------------
 local function realDesync()
     local player = LocalPlayer
     local char = player.Character
     if not char then return end
 
-    local hrp = char:FindFirstChild("HumanoidRootPart")
     local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hrp or not hum then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not hrp then return end
 
     -- Guardar posición
     local savedCF = hrp.CFrame
 
-    -- CLONAR CUERPO
+    -- Clonar cuerpo visual (fantasma)
     local ghost = char:Clone()
     ghost.Name = "GhostBody"
     ghost.Parent = workspace
 
-    -- Preparar ghost
-    for _,v in pairs(ghost:GetDescendants()) do
-        if v:IsA("Script") or v:IsA("LocalScript") then
-            v:Destroy()
-        elseif v:IsA("BasePart") then
+    for _,v in ipairs(ghost:GetDescendants()) do
+        if v:IsA("BasePart") then
             v.Anchored = true
             v.CanCollide = false
+        elseif v:IsA("Humanoid") then
+            v:Destroy()
+        elseif v:IsA("Script") or v:IsA("LocalScript") then
+            v:Destroy()
         end
     end
 
-    -- Colocar ghost en posición
-    local ghostHRP = ghost:FindFirstChild("HumanoidRootPart")
-    if ghostHRP then
-        ghostHRP.CFrame = savedCF
-    end
+    ghost:SetPrimaryPartCFrame(savedCF)
 
-    -- Respawn real
+    -- Matar jugador real
     hum.Health = 0
+
+    -- Esperar respawn
+    player.CharacterAdded:Wait()
+    task.wait(0.3)
+
+    -- Mover nuevo cuerpo a la posición original
+    local newChar = player.Character
+    if newChar and newChar:FindFirstChild("HumanoidRootPart") then
+        newChar.HumanoidRootPart.CFrame = savedCF
+    end
 end
 
 DesyncBtn.MouseButton1Click:Connect(function()
@@ -145,7 +152,6 @@ end)
 -------------------------------------------------
 -- KICK
 -------------------------------------------------
-local keyword = "you stole"
 KickBtn.MouseButton1Click:Connect(function()
 	sound()
 	kickOn = not kickOn
