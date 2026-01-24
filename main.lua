@@ -1,11 +1,10 @@
 --// HAROLD TOP 😹
---// Full GUI + Sources (DESYNC replaced with USER SOURCE)
+--// FULL GUI + BAT SPAMMER IMPLEMENTED
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
-local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -18,8 +17,8 @@ gui.Name = "HAROLD_TOP"
 gui.ResetOnSpawn = false
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0, 210, 0, 260)
-main.Position = UDim2.new(0.5, -105, 0.5, -130)
+main.Size = UDim2.new(0,210,0,260)
+main.Position = UDim2.new(0.5,-105,0.5,-130)
 main.BackgroundColor3 = Color3.fromRGB(18,18,18)
 main.BorderSizePixel = 0
 main.Active = true
@@ -35,7 +34,7 @@ title.TextSize = 14
 title.TextColor3 = Color3.fromRGB(255,80,80)
 
 -------------------------------------------------
--- CLICK SOUND
+-- SOUND
 -------------------------------------------------
 local click = Instance.new("Sound", gui)
 click.SoundId = "rbxassetid://12221967"
@@ -45,7 +44,7 @@ local function sound() click:Play() end
 -------------------------------------------------
 -- BUTTON MAKER
 -------------------------------------------------
-local function button(txt, y, w)
+local function button(txt,y,w)
 	local b = Instance.new("TextButton", main)
 	b.Size = w or UDim2.new(1,-20,0,32)
 	b.Position = UDim2.new(0,10,0,y)
@@ -62,78 +61,73 @@ end
 -------------------------------------------------
 -- BUTTONS
 -------------------------------------------------
-local DesyncBtn = button("DESYNC", 45)
-local SpeedBtn  = button("SPEED", 85)
-local KickBtn   = button("KICK", 125)
+local BatBtn   = button("BAT SPAMMER",45)
+local SpeedBtn = button("SPEED",85)
+local KickBtn  = button("KICK",125)
 
-local ESPBtn = button("ESP", 165, UDim2.new(0.48,-5,0,32))
+local ESPBtn = button("ESP",165,UDim2.new(0.48,-5,0,32))
 ESPBtn.Position = UDim2.new(0,10,0,165)
 
-local RayBtn = button("RAY", 165, UDim2.new(0.48,-5,0,32))
+local RayBtn = button("RAY",165,UDim2.new(0.48,-5,0,32))
 RayBtn.Position = UDim2.new(0.52,0,0,165)
 
-local AntiBtn = button("ANTIRADGOLL", 205)
+local AntiBtn = button("ANTIRADGOLL",205)
 
 -------------------------------------------------
 -- STATES
 -------------------------------------------------
-local desyncOn, speedOn, kickOn, espOn, rayOn, antiOn = false,false,false,false,false,false
+local batOn, speedOn, kickOn, espOn, rayOn, antiOn = false,false,false,false,false,false
 local normalSpeed = 16
 
 -------------------------------------------------
--- DESYNC RESET / GHOST BODY (USER SOURCE)
+-- BAT SPAMMER SOURCE
 -------------------------------------------------
-local function realDesync()
-    local player = LocalPlayer
-    local char = player.Character
-    if not char then return end
+local BatRemote = nil
+local batThread = nil
+local BAT_SPEED = 0.1 -- baja a 0.07 si quieres más agresivo
 
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hum or not hrp then return end
-
-    -- Guardar posición
-    local savedCF = hrp.CFrame
-
-    -- Clonar cuerpo visual (fantasma)
-    local ghost = char:Clone()
-    ghost.Name = "GhostBody"
-    ghost.Parent = workspace
-
-    for _,v in ipairs(ghost:GetDescendants()) do
-        if v:IsA("BasePart") then
-            v.Anchored = true
-            v.CanCollide = false
-        elseif v:IsA("Humanoid") then
-            v:Destroy()
-        elseif v:IsA("Script") or v:IsA("LocalScript") then
-            v:Destroy()
-        end
-    end
-
-    ghost:SetPrimaryPartCFrame(savedCF)
-
-    -- Matar jugador real
-    hum.Health = 0
-
-    -- Esperar respawn
-    player.CharacterAdded:Wait()
-    task.wait(0.3)
-
-    -- Mover nuevo cuerpo a la posición original
-    local newChar = player.Character
-    if newChar and newChar:FindFirstChild("HumanoidRootPart") then
-        newChar.HumanoidRootPart.CFrame = savedCF
-    end
+local function findBatRemote()
+	for _,v in pairs(ReplicatedStorage:GetDescendants()) do
+		if v:IsA("RemoteEvent") and v.Name:lower():find("bat") then
+			return v
+		end
+	end
+	return nil
 end
 
-DesyncBtn.MouseButton1Click:Connect(function()
+local function startBatSpam()
+	if batThread then return end
+	BatRemote = findBatRemote()
+	if not BatRemote then warn("Bat remote no encontrado") return end
+
+	batThread = task.spawn(function()
+		while batOn do
+			pcall(function()
+				BatRemote:FireServer()
+			end)
+			task.wait(BAT_SPEED)
+		end
+	end)
+end
+
+local function stopBatSpam()
+	if batThread then
+		task.cancel(batThread)
+		batThread = nil
+	end
+end
+
+BatBtn.MouseButton1Click:Connect(function()
 	sound()
-	if desyncOn then return end
-	desyncOn = true
-	DesyncBtn.Text = "DESYNC [ON]"
-	DesyncBtn.BackgroundColor3 = Color3.fromRGB(120,0,0)
-	realDesync()
+	batOn = not batOn
+	BatBtn.Text = "BAT SPAMMER ["..(batOn and "ON" or "OFF").."]"
+	BatBtn.BackgroundColor3 = batOn and Color3.fromRGB(200,60,60) or Color3.fromRGB(40,0,0)
+
+	if batOn then
+		startBatSpam()
+	else
+		stopBatSpam()
+	end
 end)
 
 -------------------------------------------------
@@ -146,36 +140,40 @@ SpeedBtn.MouseButton1Click:Connect(function()
 	speedOn = not speedOn
 	hum.WalkSpeed = speedOn and 38.5 or normalSpeed
 	SpeedBtn.Text = "SPEED ["..(speedOn and "ON" or "OFF").."]"
-	SpeedBtn.BackgroundColor3 = speedOn and Color3.fromRGB(0,120,255) or Color3.fromRGB(40,0,0)
 end)
 
 -------------------------------------------------
--- KICK
+-- KICK (placeholder)
 -------------------------------------------------
 KickBtn.MouseButton1Click:Connect(function()
 	sound()
 	kickOn = not kickOn
 	KickBtn.Text = "KICK ["..(kickOn and "ON" or "OFF").."]"
-	KickBtn.BackgroundColor3 = kickOn and Color3.fromRGB(120,0,0) or Color3.fromRGB(40,0,0)
 end)
 
 -------------------------------------------------
--- ESP
+-- ESP SIMPLE
 -------------------------------------------------
 local espObjects = {}
 
+local function clearESP()
+	for _,t in pairs(espObjects) do
+		for _,o in pairs(t) do o:Destroy() end
+	end
+	espObjects = {}
+end
+
 local function addESP(plr)
 	if plr == LocalPlayer then return end
-	local c = plr.Character
-	if not c then return end
-	local hrp = c:FindFirstChild("HumanoidRootPart")
-	local head = c:FindFirstChild("Head")
+	if not plr.Character then return end
+	local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+	local head = plr.Character:FindFirstChild("Head")
 	if not (hrp and head) then return end
 
 	local box = Instance.new("BoxHandleAdornment", hrp)
 	box.Size = Vector3.new(4,6,2)
 	box.AlwaysOnTop = true
-	box.Transparency = 0.6
+	box.Transparency = 0.5
 	box.Color3 = Color3.fromRGB(255,0,255)
 
 	local bb = Instance.new("BillboardGui", head)
@@ -195,15 +193,10 @@ ESPBtn.MouseButton1Click:Connect(function()
 	sound()
 	espOn = not espOn
 	ESPBtn.Text = "ESP ["..(espOn and "ON" or "OFF").."]"
-	ESPBtn.BackgroundColor3 = espOn and Color3.fromRGB(0,200,0) or Color3.fromRGB(40,0,0)
-
 	if espOn then
 		for _,p in pairs(Players:GetPlayers()) do addESP(p) end
 	else
-		for _,t in pairs(espObjects) do
-			for _,o in pairs(t) do o:Destroy() end
-		end
-		espObjects = {}
+		clearESP()
 	end
 end)
 
@@ -211,19 +204,13 @@ end)
 -- RAY
 -------------------------------------------------
 local rayParts = {}
-local function isBase(p)
-	local n = p.Name:lower()
-	return n:find("base") or n:find("claim")
-end
-
 RayBtn.MouseButton1Click:Connect(function()
 	sound()
 	rayOn = not rayOn
 	RayBtn.Text = "RAY ["..(rayOn and "ON" or "OFF").."]"
-	RayBtn.BackgroundColor3 = rayOn and Color3.fromRGB(255,140,0) or Color3.fromRGB(40,0,0)
 
 	for _,v in pairs(Workspace:GetDescendants()) do
-		if v:IsA("BasePart") and isBase(v) then
+		if v:IsA("BasePart") then
 			if rayOn then
 				rayParts[v] = v.LocalTransparencyModifier
 				v.LocalTransparencyModifier = 0.8
@@ -241,7 +228,6 @@ AntiBtn.MouseButton1Click:Connect(function()
 	sound()
 	antiOn = not antiOn
 	AntiBtn.Text = "ANTIRADGOLL ["..(antiOn and "ON" or "OFF").."]"
-	AntiBtn.BackgroundColor3 = antiOn and Color3.fromRGB(120,120,120) or Color3.fromRGB(40,0,0)
 end)
 
 RunService.Heartbeat:Connect(function()
